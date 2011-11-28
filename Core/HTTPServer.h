@@ -1,7 +1,11 @@
 #import <Foundation/Foundation.h>
 
 @class GCDAsyncSocket;
+@class HTTPConnection;
+@class HTTPConfig;
 @class WebSocket;
+
+typedef HTTPConnection* (^HTTPConnectionBuilder)(GCDAsyncSocket*, HTTPConfig*);
 
 #if TARGET_OS_IPHONE
   #if __IPHONE_OS_VERSION_MIN_REQUIRED >= 40000 // iPhone 4.0
@@ -27,7 +31,7 @@
 	
 	// HTTP server configuration
 	NSString *documentRoot;
-	Class connectionClass;
+	HTTPConnectionBuilder connectionBuilder;
 	NSString *interface;
 	UInt16 port;
 	
@@ -63,15 +67,14 @@
 - (void)setDocumentRoot:(NSString *)value;
 
 /**
- * The connection class is the class used to handle incoming HTTP connections.
- * 
- * The default value is [HTTPConnection class].
- * You can override HTTPConnection, and then set this to [MyHTTPConnection class].
- * 
- * If you change the connectionClass while the server is running,
- * the change will affect future incoming http connections.
+ * A plug-in interface to set your own connection handlers; must not be NULL.
+ * The default builder simply creates an instance of the HTTPConnection class.
+ * There’s also a backwards-compatible method that allows you to set the builder
+ * using a simple class name. (It’s just a convenience method implemented in terms
+ * of the block interface.)
 **/
-- (Class)connectionClass;
+- (HTTPConnectionBuilder)connectionBuilder;
+- (void)setConnectionBuilder:(HTTPConnectionBuilder)builder;
 - (void)setConnectionClass:(Class)value;
 
 /**

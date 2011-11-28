@@ -40,7 +40,7 @@ static const int httpLogLevel = HTTP_LOG_LEVEL_INFO; // | HTTP_LOG_FLAG_TRACE;
 		
 		// Use default connection class of HTTPConnection
 		connectionQueue = dispatch_queue_create("HTTPConnection", NULL);
-		connectionClass = [HTTPConnection self];
+		[self setConnectionClass:[HTTPConnection class]];
 		
 		// By default bind on all available interfaces, en1, wifi etc
 		interface = nil;
@@ -167,30 +167,32 @@ static const int httpLogLevel = HTTP_LOG_LEVEL_INFO; // | HTTP_LOG_FLAG_TRACE;
 	[valueCopy release];
 }
 
-/**
- * The connection class is the class that will be used to handle connections.
- * That is, when a new connection is created, an instance of this class will be intialized.
- * The default connection class is HTTPConnection.
- * If you use a different connection class, it is assumed that the class extends HTTPConnection
-**/
-- (Class)connectionClass
+- (HTTPConnectionBuilder)connectionBuilder
 {
-	__block Class result;
+	__block id result;
 	
 	dispatch_sync(serverQueue, ^{
-		result = connectionClass;
+		result = connectionBuilder;
 	});
 	
 	return result;
 }
 
-- (void)setConnectionClass:(Class)value
+- (void)setConnectionBuilder:(HTTPConnectionBuilder)builder
 {
 	HTTPLogTrace();
-	
+
 	dispatch_async(serverQueue, ^{
-		connectionClass = value;
+		[connectionBuilder autorelease];
+		connectionBuilder = [builder copy];
 	});
+}
+
+- (void)setConnectionClass:(Class)value
+{
+    [self setConnectionBuilder:^(GCDAsyncSocket *socket, HTTPConfig *config) {
+        return [[value alloc] initWithAsyncSocket:socket configuration:config];
+    }];
 }
 
 /**
@@ -567,8 +569,8 @@ static const int httpLogLevel = HTTP_LOG_LEVEL_INFO; // | HTTP_LOG_FLAG_TRACE;
 
 - (void)socket:(GCDAsyncSocket *)sock didAcceptNewSocket:(GCDAsyncSocket *)newSocket
 {
-	HTTPConnection *newConnection = (HTTPConnection *)[[connectionClass alloc] initWithAsyncSocket:newSocket
-	                                                                                 configuration:[self config]];
+	HTTPConnection *newConnection = connectionBuilder(newSocket, [self config]);
+
 	[connectionsLock lock];
 	[connections addObject:newConnection];
 	[connectionsLock unlock];
