@@ -191,7 +191,7 @@ static const int httpLogLevel = HTTP_LOG_LEVEL_INFO; // | HTTP_LOG_FLAG_TRACE;
 - (void)setConnectionClass:(Class)value
 {
     [self setConnectionBuilder:^(GCDAsyncSocket *socket, HTTPConfig *config) {
-        return [[value alloc] initWithAsyncSocket:socket configuration:config];
+        return [[[value alloc] initWithAsyncSocket:socket configuration:config] autorelease];
     }];
 }
 
@@ -576,7 +576,6 @@ static const int httpLogLevel = HTTP_LOG_LEVEL_INFO; // | HTTP_LOG_FLAG_TRACE;
 	[connectionsLock unlock];
 	
 	[newConnection start];
-	[newConnection release];
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
