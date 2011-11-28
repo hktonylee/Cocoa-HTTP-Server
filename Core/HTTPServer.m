@@ -40,9 +40,7 @@ static const int httpLogLevel = HTTP_LOG_LEVEL_INFO; // | HTTP_LOG_FLAG_TRACE;
 		
 		// Use default connection class of HTTPConnection
 		connectionQueue = dispatch_queue_create("HTTPConnection", NULL);
-		[self setConnectionBuilder:^(GCDAsyncSocket *socket, HTTPConfig *config) {
-			return [[HTTPConnection alloc] initWithAsyncSocket:socket configuration:config];
-		}];
+		[self setConnectionClass:[HTTPConnection class]];
 		
 		// By default bind on all available interfaces, en1, wifi etc
 		interface = nil;
@@ -188,6 +186,13 @@ static const int httpLogLevel = HTTP_LOG_LEVEL_INFO; // | HTTP_LOG_FLAG_TRACE;
 		[connectionBuilder autorelease];
 		connectionBuilder = [builder copy];
 	});
+}
+
+- (void)setConnectionClass:(Class)value
+{
+    [self setConnectionBuilder:^(GCDAsyncSocket *socket, HTTPConfig *config) {
+        return [[value alloc] initWithAsyncSocket:socket configuration:config];
+    }];
 }
 
 /**

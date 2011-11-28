@@ -69,9 +69,13 @@ typedef HTTPConnection* (^HTTPConnectionBuilder)(GCDAsyncSocket*, HTTPConfig*);
 /**
  * A plug-in interface to set your own connection handlers; must not be NULL.
  * The default builder simply creates an instance of the HTTPConnection class.
+ * There’s also a backwards-compatible method that allows you to set the builder
+ * using a simple class name. (It’s just a convenience method implemented in terms
+ * of the block interface.)
 **/
 - (HTTPConnectionBuilder)connectionBuilder;
 - (void)setConnectionBuilder:(HTTPConnectionBuilder)builder;
+- (void)setConnectionClass:(Class)value;
 
 /**
  * Set what interface you'd like the server to listen on.
