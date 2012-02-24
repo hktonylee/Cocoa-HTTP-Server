@@ -2706,7 +2706,7 @@ static NSMutableArray *recentNonces;
 		server = [aServer retain];
 		
 		documentRoot = [aDocumentRoot stringByStandardizingPath];
-		if ([documentRoot hasSuffix:@"/"])
+		if (![documentRoot hasSuffix:@"/"])
 		{
 			documentRoot = [documentRoot stringByAppendingString:@"/"];
 		}
